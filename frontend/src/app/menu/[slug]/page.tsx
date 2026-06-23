@@ -26,7 +26,7 @@ export default function PublicMenuPage() {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('');
   const [loading, setLoading] = useState(true);
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<IMenuItem | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -98,9 +98,9 @@ export default function PublicMenuPage() {
         <div className="relative -mt-10 px-6 pb-4 text-center">
           <div className="inline-flex items-center justify-center">
             {restaurant.logoUrl ? (
-              <img src={restaurant.logoUrl} alt={restaurant.name} className="w-12 h-12 rounded-xl object-cover border-[3px] shadow-xl" style={{ borderColor: theme.surface }} />
+              <img src={restaurant.logoUrl} alt={restaurant.name} className="w-16 h-16 rounded-2xl object-cover border-[3px] shadow-xl" style={{ borderColor: theme.surface }} />
             ) : (
-              <div className="w-12 h-12 rounded-xl border-[3px] shadow-xl flex items-center justify-center text-xl" style={{ background: `linear-gradient(135deg, ${theme.accent}44, ${theme.accent}66)`, borderColor: theme.surface }}>
+              <div className="w-16 h-16 rounded-2xl border-[3px] shadow-xl flex items-center justify-center text-2xl" style={{ background: `linear-gradient(135deg, ${theme.accent}44, ${theme.accent}66)`, borderColor: theme.surface }}>
                 🍽️
               </div>
             )}
@@ -148,13 +148,13 @@ export default function PublicMenuPage() {
             <span className="text-xs font-bold uppercase tracking-[0.15em]" style={{ color: theme.textSecondary }}>Онцлох</span>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
-            {featuredItems.map((item, i) => (
-              <div key={item.id} className={`flex-shrink-0 snap-start rounded-2xl overflow-hidden relative group cursor-pointer shadow-md hover:shadow-xl transition-shadow ${i === 0 ? 'w-[85vw] max-w-[400px] h-52' : 'w-40 h-52'}`}
-                onClick={() => item.imageUrl && setLightbox(item.imageUrl)}>
+            {featuredItems.map((item) => (
+              <div key={item.id} className="flex-shrink-0 snap-start w-[85vw] max-w-[400px] h-52 rounded-2xl overflow-hidden relative group cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300"
+                onClick={() => setLightbox(item)}>
                 {item.imageUrl ? (
                   <>
-                    <img src={item.imageUrl} alt={item.name} className={`w-full h-full object-cover transition-transform duration-700 ease-out ${i === 0 ? 'group-hover:scale-110' : 'group-hover:scale-105'}`}
-                      style={i === 0 ? { transform: 'translateY(-5%) scale(1.05)' } : undefined} />
+                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                      style={{ transform: 'translateY(-5%) scale(1.05)' }} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   </>
                 ) : (
@@ -194,7 +194,7 @@ export default function PublicMenuPage() {
                 <div key={item.id} className="rounded-2xl p-3 flex gap-4 border transition-all duration-300 group"
                   style={{ background: theme.surface, borderColor: theme.border, boxShadow: `0 2px 12px rgba(0,0,0,0.03)` }}>
                   {item.imageUrl ? (
-                    <div className="relative w-[140px] h-[140px] rounded-2xl overflow-hidden flex-shrink-0 cursor-pointer" onClick={() => setLightbox(item.imageUrl!)}>
+                    <div className="relative w-[140px] h-[140px] rounded-2xl overflow-hidden flex-shrink-0 cursor-pointer" onClick={() => setLightbox(item)}>
                       <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                     </div>
                   ) : (
@@ -221,11 +221,27 @@ export default function PublicMenuPage() {
         ))}
       </div>
 
-      {/* LIGHTBOX */}
+      {/* DETAIL MODAL */}
       {lightbox && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.95)' }} onClick={() => setLightbox(null)}>
-          <button className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-white" onClick={() => setLightbox(null)}><X className="w-6 h-6" /></button>
-          <img src={lightbox} alt="" className="max-w-full max-h-[85vh] rounded-2xl object-contain" onClick={e => e.stopPropagation()} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.92)' }} onClick={() => setLightbox(null)}>
+          <button className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition" onClick={() => setLightbox(null)}><X className="w-6 h-6" /></button>
+          <div className="max-w-sm w-full bg-white rounded-3xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            {lightbox.imageUrl && (
+              <img src={lightbox.imageUrl} alt={lightbox.name} className="w-full h-64 object-cover" />
+            )}
+            <div className="p-6">
+              <div className="flex justify-between items-start gap-3 mb-3">
+                <h3 className="text-xl font-extrabold text-gray-900">{lightbox.name}</h3>
+                <span className="text-xl font-extrabold text-emerald-600 whitespace-nowrap">{new Intl.NumberFormat('mn-MN').format(Number(lightbox.price))}₮</span>
+              </div>
+              {lightbox.description && (
+                <p className="text-sm text-gray-500 leading-relaxed">{lightbox.description}</p>
+              )}
+              {lightbox.category && (
+                <span className="inline-block mt-4 text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full">{lightbox.category.name}</span>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
