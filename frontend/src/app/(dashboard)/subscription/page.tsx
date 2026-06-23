@@ -10,13 +10,15 @@ export default function SubscriptionPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [upgrading, setUpgrading] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     api.get('/restaurants').then(res => {
       if (res.data.data.length > 0) {
         setSlug(res.data.data[0].slug);
       }
-    });
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -29,6 +31,7 @@ export default function SubscriptionPage() {
   };
 
   const handleUpgrade = async (tier: string) => {
+    if (!slug) { setError('Ресторан олдсонгүй. Хуудсыг refresh хийнэ үү.'); return; }
     setError('');
     setUpgrading(true);
     try {
@@ -78,6 +81,19 @@ export default function SubscriptionPage() {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-2">Захиалга</h2>
+
+      {loading && (
+        <div className="flex items-center gap-2 text-sm text-gray-400 py-8">
+          <div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-brand-600 animate-spin" />
+          Ачаалж байна...
+        </div>
+      )}
+
+      {!loading && !slug && (
+        <p className="text-gray-400 py-4">Ресторан олдсонгүй. Эхлээд ресторан үүсгэнэ үү.</p>
+      )}
+
+      {!loading && slug && <>
 
       {subscription && (
         <div className="bg-gradient-to-r from-brand-50 to-white p-6 rounded-xl border border-brand-100 mb-6">
