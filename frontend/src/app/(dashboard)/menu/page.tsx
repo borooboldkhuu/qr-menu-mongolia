@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Camera, X } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Camera, X, Star } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import type { MenuItem, Category } from '@/types';
 
@@ -67,6 +67,11 @@ export default function MenuPage() {
 
   const handleToggle = async (id: string) => {
     await api.patch(`/restaurants/${slug}/items/${id}/toggle`);
+    loadItems();
+  };
+
+  const handleFeature = async (id: string, featured: boolean) => {
+    await api.patch(`/restaurants/${slug}/items/${id}`, { isFeatured: !featured });
     loadItems();
   };
 
@@ -150,6 +155,9 @@ export default function MenuPage() {
             <p className="font-bold text-brand-600">{formatPrice(Number(item.price))}</p>
             <button onClick={() => handleToggle(item.id)} className="text-gray-400 hover:text-brand-600">
               {item.isAvailable ? <ToggleRight className="w-5 h-5 text-green-500" /> : <ToggleLeft className="w-5 h-5" />}
+            </button>
+            <button onClick={() => handleFeature(item.id, (item as any).isFeatured)} className="text-gray-400 hover:text-yellow-500">
+              <Star className={`w-5 h-5 ${(item as any).isFeatured ? 'text-yellow-500 fill-yellow-500' : ''}`} />
             </button>
             <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-600">
               <Trash2 className="w-4 h-4" />

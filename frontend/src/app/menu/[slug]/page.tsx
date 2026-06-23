@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { MapPin, Phone, Search, Sparkles, Clock, ArrowUpRight } from 'lucide-react';
+import { MapPin, Phone, Search, X, ChevronRight } from 'lucide-react';
 
 interface IRestaurant {
   id: string; name: string; slug: string;
@@ -14,6 +14,7 @@ interface IRestaurant {
 interface IMenuItem {
   id: string; name: string; description?: string;
   price: number; imageUrl?: string; isAvailable: boolean;
+  isFeatured?: boolean;
   category?: { id: string; name: string };
 }
 interface ICategory { id: string; name: string; menuItems: IMenuItem[]; }
@@ -25,6 +26,7 @@ export default function PublicMenuPage() {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('');
   const [loading, setLoading] = useState(true);
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -43,99 +45,74 @@ export default function PublicMenuPage() {
     ),
   })).filter((cat) => cat.menuItems.length > 0);
 
-  const featuredItems = categories.flatMap(c => c.menuItems).filter(i => i.imageUrl).slice(0, 4);
+  const featuredItems = categories.flatMap(c => c.menuItems).filter(i => i.imageUrl).slice(0, 6);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0f]">
-        <div className="relative">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-violet-500 to-cyan-400 animate-spin" />
-          <div className="absolute inset-2 rounded-full bg-[#0a0a0f]" />
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="w-10 h-10 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
       </div>
     );
   }
 
   if (!restaurant) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <p className="text-xl font-bold mb-2">Цэс олдсонгүй</p>
-          <p className="text-white/40 text-sm">QR кодыг дахин уншуулна уу</p>
+          <p className="text-xl font-bold text-gray-800 mb-2">Цэс олдсонгүй</p>
+          <p className="text-gray-400 text-sm">QR кодыг дахин уншуулна уу</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white">
-      {/* HERO — 2026 glass + gradient */}
-      <div className="relative overflow-hidden">
-        {/* Animated gradient bg */}
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-900/40 via-[#0a0a0f] to-cyan-900/40" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-violet-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-
-        {/* Cover image overlay */}
-        {restaurant.coverUrl && (
-          <div className="relative h-64 sm:h-80 opacity-40">
+    <div className="min-h-screen bg-white">
+      {/* ===== HERO ===== */}
+      <div className="relative bg-white">
+        {/* Cover image */}
+        {restaurant.coverUrl ? (
+          <div className="relative h-52 sm:h-64 overflow-hidden">
             <img src={restaurant.coverUrl} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0f]/60 to-[#0a0a0f]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
           </div>
+        ) : (
+          <div className="h-4" />
         )}
 
-        {/* Restaurant info - floating glass card */}
-        <div className={`relative ${restaurant.coverUrl ? '-mt-20' : 'pt-12'} px-4 pb-8 max-w-3xl mx-auto`}>
-          {/* Glass card */}
-          <div className="bg-white/[0.06] backdrop-blur-2xl rounded-3xl p-6 border border-white/[0.08] shadow-2xl">
-            <div className="flex items-center gap-5">
-              {restaurant.logoUrl ? (
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-tr from-violet-500 to-cyan-400 rounded-2xl blur opacity-50" />
-                  <img src={restaurant.logoUrl} alt={restaurant.name} className="relative w-18 h-18 rounded-2xl object-cover shadow-xl" style={{width:72,height:72}} />
-                </div>
-              ) : (
-                <div className="w-[72px] h-[72px] rounded-2xl bg-gradient-to-br from-violet-500/20 to-cyan-400/20 flex items-center justify-center text-2xl border border-white/[0.06]">
-                  🍽️
-                </div>
-              )}
-              <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">{restaurant.name}</h1>
-                <div className="flex flex-wrap gap-3 mt-2 text-sm text-white/50">
-                  {restaurant.address && <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-violet-400" />{restaurant.address}</span>}
-                  {restaurant.phone && <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-cyan-400" />{restaurant.phone}</span>}
-                </div>
-                <div className="flex gap-3 mt-3">
-                  {restaurant.facebookUrl && <a href={restaurant.facebookUrl} target="_blank" className="text-white/30 hover:text-violet-400 transition"><ArrowUpRight className="w-4 h-4" /></a>}
-                  {restaurant.instagramUrl && <a href={restaurant.instagramUrl} target="_blank" className="text-white/30 hover:text-cyan-400 transition"><ArrowUpRight className="w-4 h-4" /></a>}
-                </div>
+        {/* Restaurant card */}
+        <div className={`relative ${restaurant.coverUrl ? '-mt-14' : 'mt-4'} max-w-xl mx-auto px-4 pb-4`}>
+          <div className="bg-white rounded-3xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] border border-gray-100 p-5 flex items-center gap-4">
+            {restaurant.logoUrl ? (
+              <img src={restaurant.logoUrl} alt={restaurant.name} className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
+            ) : (
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center text-2xl">🍽️</div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl font-extrabold text-gray-900 truncate">{restaurant.name}</h1>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                {restaurant.address && <span className="text-xs text-gray-400 flex items-center gap-1"><MapPin className="w-3 h-3" />{restaurant.address}</span>}
+                {restaurant.phone && <span className="text-xs text-gray-400 flex items-center gap-1"><Phone className="w-3 h-3" />{restaurant.phone}</span>}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* FEATURED — Bento Grid 2026 */}
-      {featuredItems.length > 0 && !search && (
-        <div className="max-w-3xl mx-auto px-4 pb-4">
-          <div className="flex items-center gap-3 mb-4">
-            <Sparkles className="w-4 h-4 text-violet-400" />
-            <span className="text-xs font-semibold uppercase tracking-widest text-white/30">Онцлох</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {featuredItems.map((item, i) => (
-              <div key={item.id} className={`group relative overflow-hidden rounded-3xl bg-white/[0.04] border border-white/[0.06] ${i === 0 ? 'col-span-2 row-span-2' : ''}`}>
-                {item.imageUrl && (
-                  <div className={i === 0 ? 'h-48' : 'h-32'}>
-                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent" />
+      {/* ===== FEATURED ===== */}
+      {featuredItems.length > 0 && !search && !activeCategory && (
+        <div className="max-w-xl mx-auto px-4 pb-6">
+          <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 pl-1">Онцлох</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x">
+            {featuredItems.map((item) => (
+              <div key={item.id} className="flex-shrink-0 w-40 snap-start group cursor-pointer" onClick={() => item.imageUrl && setLightbox(item.imageUrl)}>
+                <div className="relative w-40 h-40 rounded-2xl overflow-hidden shadow-md">
+                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-sm font-semibold text-white truncate">{item.name}</p>
+                    <p className="text-xs font-bold text-white/80">{new Intl.NumberFormat('mn-MN').format(Number(item.price))}₮</p>
                   </div>
-                )}
-                <div className={`absolute bottom-0 left-0 right-0 p-4 ${!item.imageUrl ? 'static p-4' : ''}`}>
-                  <h3 className="font-bold text-white/90 text-sm">{item.name}</h3>
-                  <p className="text-base font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent mt-1">
-                    {new Intl.NumberFormat('mn-MN').format(Number(item.price))}₮
-                  </p>
                 </div>
               </div>
             ))}
@@ -143,27 +120,23 @@ export default function PublicMenuPage() {
         </div>
       )}
 
-      {/* SEARCH + CATEGORIES — Glass sticky bar */}
-      <div className="sticky top-0 z-20 px-4 py-3 backdrop-blur-2xl border-b border-white/[0.04]">
-        <div className="max-w-3xl mx-auto">
-          {/* Glass search */}
+      {/* ===== STICKY: Search + Categories ===== */}
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-gray-100">
+        <div className="max-w-xl mx-auto px-4 py-3">
           <div className="relative mb-3">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
             <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              type="search" value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Хоол хайх..."
-              className="w-full pl-11 pr-4 py-3 bg-white/[0.04] backdrop-blur border border-white/[0.08] rounded-2xl text-sm text-white placeholder-white/20 focus:ring-2 focus:ring-violet-500/50 focus:border-transparent outline-none transition"
+              className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-violet-400 focus:bg-white outline-none transition"
             />
           </div>
-          {/* Category pills */}
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            <button onClick={() => setActiveCategory('')} className={`px-5 py-2.5 rounded-2xl text-sm whitespace-nowrap font-medium transition-all ${!activeCategory ? 'bg-gradient-to-r from-violet-500 to-cyan-500 text-white shadow-lg shadow-violet-500/25' : 'bg-white/[0.04] text-white/50 hover:bg-white/[0.08] hover:text-white/70'}`}>
+            <button onClick={() => setActiveCategory('')} className={`px-4 py-2 rounded-full text-sm whitespace-nowrap font-semibold transition-all ${!activeCategory ? 'bg-gray-900 text-white shadow-lg' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
               Бүгд
             </button>
             {categories.map((cat) => (
-              <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-5 py-2.5 rounded-2xl text-sm whitespace-nowrap font-medium transition-all ${activeCategory === cat.id ? 'bg-gradient-to-r from-violet-500 to-cyan-500 text-white shadow-lg shadow-violet-500/25' : 'bg-white/[0.04] text-white/50 hover:bg-white/[0.08] hover:text-white/70'}`}>
+              <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={`px-4 py-2 rounded-full text-sm whitespace-nowrap font-semibold transition-all ${activeCategory === cat.id ? 'bg-gray-900 text-white shadow-lg' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
                 {cat.name}
               </button>
             ))}
@@ -171,51 +144,48 @@ export default function PublicMenuPage() {
         </div>
       </div>
 
-      {/* MENU ITEMS — Glass cards 2026 */}
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-8">
+      {/* ===== MENU ITEMS ===== */}
+      <div className="max-w-xl mx-auto px-4 py-5 space-y-8">
         {filteredCategories.length === 0 && (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 rounded-3xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mx-auto mb-4">
-              <Search className="w-6 h-6 text-white/20" />
-            </div>
-            <p className="text-white/30 text-sm">Хоол олдсонгүй</p>
+          <div className="text-center py-16 text-gray-300">
+            <Search className="w-10 h-10 mx-auto mb-3 opacity-20" />
+            <p className="text-sm">Хоол олдсонгүй</p>
           </div>
         )}
 
         {(activeCategory ? filteredCategories.filter(c => c.id === activeCategory) : filteredCategories).map((category) => (
           <section key={category.id}>
-            {/* Category header */}
-            <div className="flex items-center gap-4 mb-5">
-              <div className="h-10 w-1 rounded-full bg-gradient-to-b from-violet-500 to-cyan-400" />
-              <h2 className="text-xl font-bold text-white/90">{category.name}</h2>
-              <div className="flex-1 h-px bg-white/[0.06]" />
-              <span className="text-xs text-white/20 font-mono">{category.menuItems.length}</span>
-            </div>
-
-            <div className="space-y-3">
+            <h2 className="text-lg font-extrabold text-gray-900 mb-4 flex items-center gap-3">
+              {category.name}
+              <span className="text-xs font-normal text-gray-300">({category.menuItems.length})</span>
+            </h2>
+            <div className="space-y-4">
               {category.menuItems.map((item) => (
-                <div key={item.id} className="group bg-white/[0.03] backdrop-blur border border-white/[0.06] rounded-2xl p-3 flex gap-4 hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300">
-                  {/* Image */}
+                <div key={item.id} className="flex gap-4 group">
+                  {/* Big image */}
                   {item.imageUrl ? (
-                    <div className="relative w-[104px] h-[104px] rounded-2xl overflow-hidden flex-shrink-0">
-                      <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-cyan-400/10 z-10" />
-                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <div
+                      className="w-[130px] h-[130px] rounded-2xl overflow-hidden flex-shrink-0 shadow-sm cursor-pointer relative"
+                      onClick={() => setLightbox(item.imageUrl!)}
+                    >
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                        <span className="text-white text-xs bg-black/40 px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">Томруулах</span>
+                      </div>
                     </div>
                   ) : (
-                    <div className="w-[104px] h-[104px] rounded-2xl bg-gradient-to-br from-violet-500/[0.08] to-cyan-400/[0.08] flex-shrink-0 flex items-center justify-center text-3xl border border-white/[0.04]">
-                      <span className="opacity-30">{item.category?.name === 'Уух зүйл' ? '🥤' : '🍽️'}</span>
+                    <div className="w-[130px] h-[130px] rounded-2xl bg-gray-50 flex-shrink-0 flex items-center justify-center text-3xl">
+                      🍽️
                     </div>
                   )}
                   {/* Content */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <div className="flex justify-between items-start gap-3">
-                      <h3 className="font-semibold text-white/85 text-[15px] leading-tight">{item.name}</h3>
-                      <span className="font-bold text-base whitespace-nowrap bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                        {new Intl.NumberFormat('mn-MN').format(Number(item.price))}₮
-                      </span>
-                    </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center py-1">
+                    <h3 className="font-bold text-gray-900 text-[15px] leading-tight">{item.name}</h3>
+                    <p className="text-xs font-semibold text-violet-600 mt-1">
+                      {new Intl.NumberFormat('mn-MN').format(Number(item.price))}₮
+                    </p>
                     {item.description && (
-                      <p className="text-sm text-white/35 mt-1.5 leading-relaxed line-clamp-2">{item.description}</p>
+                      <p className="text-xs text-gray-400 mt-1.5 leading-relaxed line-clamp-2">{item.description}</p>
                     )}
                   </div>
                 </div>
@@ -225,12 +195,19 @@ export default function PublicMenuPage() {
         ))}
       </div>
 
-      {/* Floating bottom */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
-        <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.08] rounded-full px-5 py-2.5 text-xs text-white/30 flex items-center gap-2 shadow-2xl">
-          <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 animate-pulse" />
-          QR Menu Mongolia ⚡ {new Date().getFullYear()}
+      {/* ===== LIGHTBOX ===== */}
+      {lightbox && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
+          <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition" onClick={() => setLightbox(null)}>
+            <X className="w-5 h-5" />
+          </button>
+          <img src={lightbox} alt="" className="max-w-full max-h-[85vh] rounded-2xl object-contain" onClick={(e) => e.stopPropagation()} />
         </div>
+      )}
+
+      {/* ===== FOOTER ===== */}
+      <div className="text-center py-6">
+        <p className="text-xs text-gray-200">QR Menu Mongolia ⚡</p>
       </div>
     </div>
   );
