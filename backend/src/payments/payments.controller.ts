@@ -1,5 +1,4 @@
-import { Controller, Post, Body, Headers, Req, RawBodyRequest } from '@nestjs/common';
-import { Request } from 'express';
+import { Controller, Post, Headers, Req, RawBodyRequest } from '@nestjs/common';
 import { WireService } from './wire.service';
 import { Public } from '../common/decorators/public.decorator';
 
@@ -9,8 +8,6 @@ export class PaymentsController {
 
   /**
    * Wire webhook endpoint
-   * IP whitelist: 65.109.117.186
-   * HMAC-SHA256 signature шалгана
    */
   @Public()
   @Post('wire/webhook')
@@ -18,7 +15,18 @@ export class PaymentsController {
     @Req() req: RawBodyRequest<Request>,
     @Headers('wirepayment-signature') signature: string,
   ) {
-    const rawBody = (req as any).rawBody?.toString() || JSON.stringify(req.body);
-    return this.wireService.handleWebhook(rawBody, signature || '');
+    let raw = '';
+    try {
+      if (Buffer.isBuffer((req as any).rawBody)) {
+        raw = ((req as any).rawBody as Buffer).toString('utf-8');
+      } else if (typeof (req as any).rawBody === 'string') {
+        raw = (req as any).rawBody;
+      } else {
+        raw = JSON.stringify(req.body || {});
+      }
+    } catch {
+      raw = '{}';
+    }
+    return this.wireService.handleWebhook(raw, signature || '');
   }
 }

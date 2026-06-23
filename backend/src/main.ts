@@ -5,11 +5,10 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import * as compression from 'compression';
 import helmet from 'helmet';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    rawBody: true, // QPay webhook HMAC шинжихэд raw body хэрэгтэй
-  });
+  const app = await NestFactory.create(AppModule);
 
   // Security (CSP disabled to allow Vercel → Render cross-origin requests)
   app.use(helmet({ contentSecurityPolicy: false }));
@@ -20,6 +19,17 @@ async function bootstrap() {
     ],
     credentials: true,
   });
+
+  // Wire webhook-д rawBody хэрэгтэй
+  app.use('/api/v1/payments/wire/webhook', json({
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }));
+
+  // Body parser
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
 
   // Compression
   app.use(compression());
