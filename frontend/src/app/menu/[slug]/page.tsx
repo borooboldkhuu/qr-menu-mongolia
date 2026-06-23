@@ -95,12 +95,12 @@ export default function PublicMenuPage() {
             <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${theme.accent}22, ${theme.accent}44)` }} />
           )}
         </div>
-        <div className="relative -mt-10 px-6 pb-4 text-center">
+        <div className="relative -mt-16 px-6 pb-4 text-center">
           <div className="inline-flex items-center justify-center">
             {restaurant.logoUrl ? (
-              <img src={restaurant.logoUrl} alt={restaurant.name} className="w-16 h-16 rounded-2xl object-cover border-[3px] shadow-xl" style={{ borderColor: theme.surface }} />
+              <img src={restaurant.logoUrl} alt={restaurant.name} className="w-[150px] h-[150px] rounded-2xl object-cover border-[3px] shadow-xl" style={{ borderColor: theme.surface }} />
             ) : (
-              <div className="w-16 h-16 rounded-2xl border-[3px] shadow-xl flex items-center justify-center text-2xl" style={{ background: `linear-gradient(135deg, ${theme.accent}44, ${theme.accent}66)`, borderColor: theme.surface }}>
+              <div className="w-[150px] h-[150px] rounded-2xl border-[3px] shadow-xl flex items-center justify-center text-4xl" style={{ background: `linear-gradient(135deg, ${theme.accent}44, ${theme.accent}66)`, borderColor: theme.surface }}>
                 🍽️
               </div>
             )}
