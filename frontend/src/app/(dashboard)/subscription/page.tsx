@@ -26,10 +26,11 @@ export default function SubscriptionPage() {
   const handleUpgrade = async (tier: string) => {
     setUpgrading(true);
     try {
-      await api.patch(`/restaurants/${slug}/subscription`, { tier });
-      const res = await api.get(`/restaurants/${slug}/subscription`);
-      setSubscription(res.data.data);
-      alert(`${tier} багц идэвхжлээ! 🎉`);
+      const res = await api.post(`/restaurants/${slug}/subscription/pay`, { tier });
+      if (res.data.data?.paymentUrl) {
+        window.open(res.data.data.paymentUrl, '_blank');
+      }
+      alert('Төлбөрийн цонх нээгдлээ. Төлбөр хийсний дараа багц идэвхжинэ.');
     } catch (err: any) { alert(err?.response?.data?.message || 'Алдаа'); }
     finally { setUpgrading(false); }
   };

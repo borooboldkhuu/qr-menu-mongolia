@@ -7,7 +7,9 @@ import * as compression from 'compression';
 import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true, // QPay webhook HMAC шинжихэд raw body хэрэгтэй
+  });
 
   // Security (CSP disabled to allow Vercel → Render cross-origin requests)
   app.use(helmet({ contentSecurityPolicy: false }));
