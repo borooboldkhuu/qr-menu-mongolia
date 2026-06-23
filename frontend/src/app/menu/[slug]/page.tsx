@@ -38,7 +38,7 @@ export default function PublicMenuPage() {
       setCategories(res.data.data.categories);
       setLoading(false);
     });
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    const onScroll = () => setScrolled(window.scrollY > 120);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, [slug]);
@@ -83,40 +83,42 @@ export default function PublicMenuPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-gray-900 font-sans selection:bg-emerald-100">
-      {/* ======== HERO BANNER ======== */}
-      <section className="relative bg-white overflow-hidden">
-        <div className="relative h-[280px] sm:h-[340px]">
+      {/* ======== HERO ======== */}
+      <section className="relative bg-white">
+        {/* Cover image — smaller, rounded bottom */}
+        <div className="relative h-44 sm:h-52 overflow-hidden rounded-b-[2rem]">
           {restaurant.coverUrl ? (
             <>
-              <img src={restaurant.coverUrl} alt="" className="w-full h-full object-cover scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+              <img src={restaurant.coverUrl} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/5 to-black/30" />
             </>
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600" />
+            <div className="w-full h-full bg-gradient-to-br from-emerald-100 via-green-50 to-teal-100" />
           )}
-          {/* Decorative blobs */}
-          <div className="absolute top-10 right-10 w-20 h-20 rounded-full bg-white/10 blur-2xl" />
-          <div className="absolute bottom-20 left-10 w-16 h-16 rounded-full bg-white/5 blur-xl" />
+        </div>
 
-          {/* Restaurant info overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-6">
-            <div className="flex items-end gap-4">
-              {restaurant.logoUrl ? (
-                <div className="relative">
-                  <div className="absolute -inset-0.5 bg-white/20 rounded-2xl blur" />
-                  <img src={restaurant.logoUrl} alt="" className="relative w-16 h-16 rounded-2xl object-cover border-2 border-white/30 shadow-xl" />
-                </div>
-              ) : (
-                <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center text-2xl border border-white/20">🍽️</div>
-              )}
-              <div className="flex-1 min-w-0">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight drop-shadow-md">{restaurant.name}</h1>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-sm text-white/75">
-                  {restaurant.address && <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 opacity-70" />{restaurant.address}</span>}
-                  {restaurant.phone && <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 opacity-70" />{restaurant.phone}</span>}
-                </div>
+        {/* Logo + Name — centered, logo big */}
+        <div className="relative -mt-10 px-6 pb-4 text-center">
+          {/* Logo */}
+          <div className="inline-flex items-center justify-center">
+            {restaurant.logoUrl ? (
+              <img
+                src={restaurant.logoUrl}
+                alt={restaurant.name}
+                className="w-20 h-20 rounded-2xl object-cover border-[3px] border-white shadow-xl"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 border-[3px] border-white shadow-xl flex items-center justify-center text-3xl">
+                🍽️
               </div>
-            </div>
+            )}
+          </div>
+          {/* Name */}
+          <h1 className="text-xl font-extrabold text-gray-900 mt-3 tracking-tight">{restaurant.name}</h1>
+          {/* Address + Phone below */}
+          <div className="flex justify-center gap-4 mt-2 text-xs text-gray-400">
+            {restaurant.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{restaurant.address}</span>}
+            {restaurant.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{restaurant.phone}</span>}
           </div>
         </div>
       </section>
