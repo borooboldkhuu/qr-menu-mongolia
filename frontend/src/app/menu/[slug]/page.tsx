@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { Search, X, Clock, MapPin, Phone, Heart, Share2, ChevronRight } from 'lucide-react';
+import { Search, X, MapPin, Phone } from 'lucide-react';
 
-// ─── category → icon mapping ───
-const CAT_ICONS: Record<string, string> = {};
+// ─── category → icon detection ───
 
 interface IRestaurant {
   id: string; name: string; slug: string;
@@ -177,7 +176,7 @@ export default function PublicMenuPage() {
             {featuredItems.map((item, i) => (
               <div
                 key={item.id}
-                className={`flex-shrink-0 snap-start rounded-2xl overflow-hidden relative group cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300 ${i === 0 ? 'w-[85vw] max-w-[380px] h-44' : 'w-40 h-44'}`}
+                className="flex-shrink-0 snap-start w-40 h-44 rounded-2xl overflow-hidden relative group cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300"
                 onClick={() => item.imageUrl && setLightbox(item.imageUrl)}
               >
                 {item.imageUrl ? (
@@ -233,14 +232,14 @@ export default function PublicMenuPage() {
                   {/* Image */}
                   {item.imageUrl ? (
                     <div
-                      className="relative w-[110px] h-[110px] rounded-2xl overflow-hidden flex-shrink-0 cursor-pointer shadow-sm"
+                      className="relative w-[140px] h-[140px] rounded-2xl overflow-hidden flex-shrink-0 cursor-pointer shadow-sm"
                       onClick={() => setLightbox(item.imageUrl!)}
                     >
                       <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                       <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/5" />
                     </div>
                   ) : (
-                    <div className="w-[110px] h-[110px] rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 flex-shrink-0 flex items-center justify-center text-3xl">
+                    <div className="w-[140px] h-[140px] rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 flex-shrink-0 flex items-center justify-center text-3xl">
                       {getCatIcon(item.category?.name || '')}
                     </div>
                   )}
@@ -274,26 +273,6 @@ export default function PublicMenuPage() {
             </div>
           </section>
         ))}
-      </div>
-
-      {/* ======== FLOATING BOTTOM BAR ======== */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 p-4">
-        <div className="max-w-sm mx-auto bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.06)] border border-white/80 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-              <span className="text-emerald-600 text-sm font-bold">{new Date().getFullYear()}</span>
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-gray-600">QR Цэс</p>
-              <p className="text-[10px] text-gray-400">{restaurant.name}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition">
-              <Share2 className="w-4 h-4 text-gray-400" />
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* ======== LIGHTBOX ======== */}
