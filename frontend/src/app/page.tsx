@@ -1,178 +1,142 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
+import { Check, QrCode, BarChart3, Infinity, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { Menu, QrCode, BarChart3, Smartphone, ArrowRight } from 'lucide-react';
+
+const plans = [
+  { tier: 'STARTER', name: 'Starter', price: '29,000', color: 'border-gray-200', features: ['QR цэс', '50 хүртэл хоол', '10 ангилал', 'Үндсэн аналитик'], icon: QrCode },
+  { tier: 'PRO', name: 'Pro', price: '49,000', color: 'border-emerald-500 ring-2 ring-emerald-500', features: ['QR цэс', '200 хүртэл хоол', '30 ангилал', 'Дэлгэрэнгүй аналитик', 'Нэмэлт админ'], icon: BarChart3, popular: true },
+  { tier: 'ENTERPRISE', name: 'Enterprise', price: '79,000', color: 'border-gray-200', features: ['QR цэс', 'Хязгааргүй хоол', 'Хязгааргүй ангилал', 'Бүрэн аналитик', 'Custom domain'], icon: Infinity },
+];
 
 export default function HomePage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [user, setUser] = useState<any>(null);
+  const [slug, setSlug] = useState('');
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      setUser({ token });
+      api.get('/restaurants').then(r => {
+        if (r.data.data.length > 0) setSlug(r.data.data[0].slug);
+      }).catch(() => {});
+    }
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault(); setSubmitting(true); setError('');
+    try {
+      const res = await api.post('/auth/login', { email, password });
+      localStorage.setItem('accessToken', res.data.data.accessToken);
+      window.location.href = '/dashboard';
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Нэвтрэхэд алдаа гарлаа');
+    } finally { setSubmitting(false); }
+  };
+
   return (
-    <div className="min-h-screen">
-      {/* Nav */}
-      <nav className="border-b bg-white/80 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-brand-600 flex items-center gap-2">
-            <QrCode className="w-6 h-6" />
-            QR Menu Mongolia
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-gray-600 hover:text-gray-900 font-medium">
-              Нэвтрэх
-            </Link>
-            <Link
-              href="/register"
-              className="bg-brand-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-700 transition"
-            >
-              Үнэгүй эхлэх
-            </Link>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50">
+      {/* HEADER */}
+      <header className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
+        <div className="flex items-center gap-2">
+          <span className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">Q</span>
+          <span className="font-bold text-lg">QR Menu</span>
         </div>
-      </nav>
+        <div className="flex gap-3 items-center">
+          {user ? (
+            <>
+              <Link href={slug ? `/menu/${slug}` : '/dashboard'} className="text-sm text-gray-500 hover:text-emerald-600">
+                Миний цэс
+              </Link>
+              <Link href="/dashboard" className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700">
+                Хянах самбар
+              </Link>
+            </>
+          ) : (
+            <a href="#login" className="bg-emerald-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-emerald-700">Нэвтрэх</a>
+          )}
+        </div>
+      </header>
 
-      {/* Hero */}
-      <section className="max-w-7xl mx-auto px-4 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-brand-50 text-brand-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-          🇲🇳 Монголын ресторануудад зориулав
-        </div>
-        <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-          Цэсээ дижитал
-          <br />
-          <span className="text-brand-600">QR кодоор</span> болго
+      {/* HERO */}
+      <section className="text-center px-6 py-16 max-w-3xl mx-auto">
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight">
+          Монгол рестораны<br/><span className="text-emerald-600">QR цэсний шийдэл</span>
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-10">
-          QR кодоор цэсээ харуулж, админ самбараас шуурхай удирдана. Цаасан цэсний
-          зардлаа 90% бууруулж, үйлчлүүлэгчдийнхээ туршлагыг сайжруул.
+        <p className="text-gray-500 text-lg mb-8 max-w-xl mx-auto">
+          Хэвлэх цэсний зардалгүй. Зөвхөн QR код үүсгээд харилцагчид цахим цэс үзүүлээрэй.
         </p>
-        <div className="flex gap-4 justify-center">
-          <Link
-            href="/register"
-            className="bg-brand-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-brand-700 transition inline-flex items-center gap-2"
-          >
-            Үнэгүй эхлэх <ArrowRight className="w-5 h-5" />
+        <div className="flex gap-3 justify-center">
+          <Link href="/register" className="bg-emerald-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-emerald-700 shadow-lg transition flex items-center gap-2">
+            7 хоног үнэгүй <ArrowRight className="w-4 h-4" />
           </Link>
-          <Link
-            href="#features"
-            className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-50 transition"
-          >
-            Дэлгэрэнгүй
+          <Link href="/login" className="border-2 border-gray-200 px-8 py-3 rounded-xl font-semibold text-gray-600 hover:border-emerald-300 hover:text-emerald-600 transition">
+            Нэвтрэх
           </Link>
         </div>
-        <p className="text-sm text-gray-400 mt-4">14 хоног үнэгүй • Кредит карт шаардлагагүй</p>
+        <p className="text-xs text-gray-400 mt-3">Картын мэдээлэл шаардлагагүй</p>
       </section>
 
-      {/* Features */}
-      <section id="features" className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-16">Бүх боломжууд</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <QrCode className="w-8 h-8" />,
-                title: 'QR код үүсгэх',
-                desc: 'Автоматаар QR код үүсгэж, PNG/SVG татах, хэвлэхэд бэлэн.',
-              },
-              {
-                icon: <Menu className="w-8 h-8" />,
-                title: 'Админ самбар',
-                desc: 'Цэс, ангилал, үнэ зэргийг хялбар удирдах админ самбар.',
-              },
-              {
-                icon: <Smartphone className="w-8 h-8" />,
-                title: 'Гар утсанд тохирсон',
-                desc: 'Ямар ч утас, таблет дээр төгс харагдах нийтийн цэс.',
-              },
-              {
-                icon: <BarChart3 className="w-8 h-8" />,
-                title: 'Статистик',
-                desc: 'QR уншуулалт, хандалтын дэлгэрэнгүй статистик.',
-              },
-              {
-                icon: <span className="text-2xl">₮</span>,
-                title: 'Хямд үнэ',
-                desc: '₮29,000/сараас эхлэх 3 багц. Бүх түвшинд тохирсон.',
-              },
-              {
-                icon: <span className="text-2xl">🇲🇳</span>,
-                title: '100% Монгол',
-                desc: 'Монгол хэл дээр бүрэн. Орон нутгийн дэмжлэгтэй.',
-              },
-            ].map((feat, i) => (
-              <div key={i} className="p-6 rounded-xl border bg-gray-50 hover:shadow-md transition">
-                <div className="text-brand-600 mb-4">{feat.icon}</div>
-                <h3 className="text-lg font-semibold mb-2">{feat.title}</h3>
-                <p className="text-gray-600">{feat.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-4">Үнийн багцууд</h2>
-          <p className="text-gray-600 text-center mb-16">
-            Бүх багц 14 хоног үнэгүй турших боломжтой
-          </p>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              { name: 'Starter', price: '29,000', features: ['50 хүртэл хоол', '10 ангилал', '1 QR код', '1 зураг/хоол', 'Үндсэн аналитик'], border: 'border-gray-200' },
-              { name: 'Pro', price: '49,000', features: ['200 хүртэл хоол', '30 ангилал', '3 QR код', '5 зураг/хоол', 'Дэлгэрэнгүй аналитик', '1 нэмэлт админ', 'Chat дэмжлэг'], border: 'border-brand-500 ring-2 ring-brand-500', popular: true },
-              { name: 'Enterprise', price: '79,000', features: ['Хязгааргүй хоол', 'Хязгааргүй ангилал', '10 QR код', 'Хязгааргүй зураг', 'Түүхэн аналитик', '3 нэмэлт админ', 'Custom domain', '24/7 дэмжлэг'], border: 'border-gray-200' },
-            ].map((plan, i) => (
-              <div key={i} className={`bg-white p-8 rounded-2xl ${plan.border} relative`}>
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    Хамгийн эрэлттэй
-                  </div>
-                )}
-                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">₮{plan.price}</span>
-                  <span className="text-gray-500">/сар</span>
+      {/* PRICING */}
+      <section className="px-6 py-12 max-w-5xl mx-auto" id="pricing">
+        <h2 className="text-2xl font-bold text-center mb-2">Багц сонгох</h2>
+        <p className="text-sm text-gray-400 text-center mb-8">7 хоног үнэгүй туршиж үзэх боломжтой</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {plans.map(plan => (
+            <div key={plan.tier} className={`bg-white p-6 rounded-2xl ${plan.color} relative`}>
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg">
+                  ⭐ Хамгийн эрэлттэй
                 </div>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((f, j) => (
-                    <li key={j} className="flex items-center gap-2 text-gray-600">
-                      <span className="text-green-500">✓</span> {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/register"
-                  className={`block w-full text-center py-3 rounded-lg font-semibold transition ${
-                    plan.popular
-                      ? 'bg-brand-600 text-white hover:bg-brand-700'
-                      : 'border border-brand-600 text-brand-600 hover:bg-brand-50'
-                  }`}
-                >
-                  Үнэгүй эхлэх
-                </Link>
-              </div>
-            ))}
-          </div>
+              )}
+              <plan.icon className="w-8 h-8 text-emerald-600 mb-3" />
+              <h3 className="font-bold text-lg">{plan.name}</h3>
+              <p className="text-3xl font-extrabold mt-2 mb-1">₮{plan.price}</p>
+              <p className="text-sm text-gray-400 mb-4">/ сар</p>
+              <ul className="space-y-2.5 mb-6">
+                {plan.features.map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                    <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/register" className={`block text-center py-2.5 rounded-xl font-semibold text-sm transition ${plan.popular ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md' : 'border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50'}`}>
+                Эхлэх
+              </Link>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 bg-brand-600 text-white text-center">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-4">QR цэсээ өнөөдөр эхлүүл</h2>
-          <p className="text-brand-100 mb-8 text-lg">
-            5 минутын дотор таны цэс онлайн болно. 14 хоног үнэгүй турших.
+      {/* LOGIN */}
+      <section id="login" className="px-6 py-12 max-w-md mx-auto">
+        <div className="bg-white p-8 rounded-2xl border shadow-sm">
+          <h2 className="text-xl font-bold mb-6 text-center">Нэвтрэх</h2>
+          {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4">{error}</div>}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Имэйл" className="w-full border rounded-xl px-4 py-3" required />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Нууц үг" className="w-full border rounded-xl px-4 py-3" required />
+            <button type="submit" disabled={submitting} className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700">
+              {submitting ? 'Нэвтэрч байна...' : 'Нэвтрэх'}
+            </button>
+          </form>
+          <p className="text-center text-sm text-gray-400 mt-4">
+            Бүртгэлгүй юу? <Link href="/register" className="text-emerald-600 font-medium">Бүртгүүлэх</Link>
           </p>
-          <Link
-            href="/register"
-            className="inline-flex items-center gap-2 bg-white text-brand-700 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-brand-50 transition"
-          >
-            Үнэгүй бүртгүүлэх <ArrowRight className="w-5 h-5" />
-          </Link>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t py-12">
-        <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>&copy; 2026 QR Menu Mongolia. Бүх эрх хуулиар хамгаалагдсан.</p>
-        </div>
+      {/* FOOTER */}
+      <footer className="text-center py-8 text-xs text-gray-400">
+        QR Menu Mongolia © 2026
       </footer>
     </div>
   );

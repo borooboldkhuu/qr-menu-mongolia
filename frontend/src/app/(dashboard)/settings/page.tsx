@@ -9,8 +9,10 @@ export default function SettingsPage() {
   const [restaurant, setRestaurant] = useState<any>(null);
   const [form, setForm] = useState({ name: '', address: '', phone: '', facebookUrl: '', instagramUrl: '', theme: 'light', primaryColor: '#059669' });
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     api.get('/restaurants').then((res) => {
       if (res.data.data.length > 0) {
         const r = res.data.data[0];
@@ -18,7 +20,7 @@ export default function SettingsPage() {
         setRestaurant(r);
         setForm({ name: r.name || '', address: r.address || '', phone: r.phone || '', facebookUrl: r.facebookUrl || '', instagramUrl: r.instagramUrl || '', theme: r.theme || 'light', primaryColor: r.primaryColor || '#059669' });
       }
-    });
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -52,6 +54,17 @@ export default function SettingsPage() {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">Тохиргоо</h2>
+
+      {loading && (
+        <div className="flex items-center gap-2 text-sm text-gray-400">
+          <div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-brand-600 animate-spin" />
+          Ачаалж байна... (Render сервер сэрэх үед 30-60 сек)
+        </div>
+      )}
+
+      {!loading && !restaurant && (
+        <p className="text-gray-400">Ресторан олдсонгүй. Эхлээд ресторан үүсгэнэ үү.</p>
+      )}
 
       {restaurant && (
         <div className="max-w-2xl space-y-6">
