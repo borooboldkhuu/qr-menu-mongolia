@@ -46,4 +46,12 @@ export class UpdateRestaurantDto {
   @IsOptional()
   @IsUrl()
   instagramUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  theme?: string;
+
+  @IsOptional()
+  @IsString()
+  primaryColor?: string;
 }

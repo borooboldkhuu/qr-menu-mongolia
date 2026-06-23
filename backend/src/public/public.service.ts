@@ -18,6 +18,8 @@ export class PublicService {
         phone: true,
         facebookUrl: true,
         instagramUrl: true,
+        theme: true,
+        primaryColor: true,
       },
     });
 
