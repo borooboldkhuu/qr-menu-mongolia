@@ -30,6 +30,8 @@ export default function PublicMenuPage() {
   const [lightbox, setLightbox] = useState<IMenuItem | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
+  const isExpired = restaurant?.subExpiresAt && new Date(restaurant.subExpiresAt) < new Date();
+
   useEffect(() => {
     if (!slug) return;
     api.get(`/public/${slug}/menu`).then(res => {
@@ -79,6 +81,28 @@ export default function PublicMenuPage() {
   if (!restaurant) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: theme.bg }}>
       <p className="text-sm" style={{ color: theme.textSecondary }}>Цэс олдсонгүй</p>
+    </div>
+  );
+  if (isExpired) return (
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: theme.bg }}>
+      <div className="max-w-sm w-full text-center space-y-6">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-red-50 flex items-center justify-center">
+          <span className="text-4xl">⏳</span>
+        </div>
+        <div>
+          <h2 className="text-xl font-bold mb-2" style={{ color: theme.text }}>Хугацаа дууссан</h2>
+          <p className="text-sm" style={{ color: theme.textSecondary }}>
+            Энэ цэсний захиалгын хугацаа дууссан байна. Та рестораны админ бол захиалгаа сунгана уу.
+          </p>
+        </div>
+        <a
+          href={`https://qr-menu-mn.vercel.app/subscription`}
+          className="inline-block px-6 py-3 rounded-xl font-semibold text-white shadow-lg transition"
+          style={{ background: theme.accent }}
+        >
+          Захиалга сунгах
+        </a>
+      </div>
     </div>
   );
 
