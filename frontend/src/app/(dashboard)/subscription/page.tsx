@@ -14,11 +14,20 @@ export default function SubscriptionPage() {
 
   useEffect(() => {
     setLoading(true);
-    api.get('/restaurants').then(res => {
-      if (res.data.data.length > 0) {
-        setSlug(res.data.data[0].slug);
-      }
-    }).catch(() => {}).finally(() => setLoading(false));
+    let attempts = 0;
+    const tryLoad = () => {
+      attempts++;
+      api.get('/restaurants').then(res => {
+        if (res.data.data.length > 0) {
+          setSlug(res.data.data[0].slug);
+        }
+        setLoading(false);
+      }).catch(() => {
+        if (attempts < 3) setTimeout(tryLoad, 2000);
+        else setLoading(false);
+      });
+    };
+    tryLoad();
   }, []);
 
   useEffect(() => {
