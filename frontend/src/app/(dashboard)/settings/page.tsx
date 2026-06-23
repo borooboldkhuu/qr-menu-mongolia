@@ -24,9 +24,14 @@ export default function SettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    await api.patch(`/restaurants/${slug}`, { name: form.name, address: form.address, phone: form.phone, facebookUrl: form.facebookUrl, instagramUrl: form.instagramUrl, theme: form.theme, primaryColor: form.primaryColor });
-    setSaving(false);
-    alert('Амжилттай хадгалагдлаа! ✅');
+    try {
+      await api.patch(`/restaurants/${slug}`, { name: form.name, address: form.address, phone: form.phone, facebookUrl: form.facebookUrl, instagramUrl: form.instagramUrl, theme: form.theme, primaryColor: form.primaryColor });
+      alert('Амжилттай хадгалагдлаа! ✅');
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Хадгалахад алдаа гарлаа. Та дахин оролдоно уу.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
