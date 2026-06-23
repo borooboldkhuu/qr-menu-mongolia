@@ -13,7 +13,7 @@ import { UsersModule } from '../users/users.module';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_ACCESS_SECRET || 'dev-access-secret',
-      signOptions: { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '1h' },
+      signOptions: { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '30d' },
     }),
     UsersModule,
   ],
