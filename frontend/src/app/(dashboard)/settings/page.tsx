@@ -32,11 +32,16 @@ export default function SettingsPage() {
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 2000000) { alert('Зураг 2MB-с бага байх ёстой'); return; }
     const formData = new FormData();
     formData.append('file', file);
-    await api.patch(`/restaurants/${slug}/logo`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-    const res = await api.get('/restaurants');
-    setRestaurant(res.data.data[0]);
+    try {
+      await api.patch(`/restaurants/${slug}/logo`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const res = await api.get('/restaurants');
+      setRestaurant(res.data.data[0]);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Зураг оруулж чадсангүй. Cloudinary тохируулаагүй байж болзошгүй.');
+    }
   };
 
   return (

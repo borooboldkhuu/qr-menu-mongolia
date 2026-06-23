@@ -4,16 +4,30 @@ import { Readable } from 'stream';
 
 @Injectable()
 export class UploadService {
+  private isConfigured: boolean;
+
   constructor() {
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    });
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    this.isConfigured = !!cloudName && cloudName !== 'demo';
+    if (this.isConfigured) {
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+    }
   }
 
   async uploadImage(file: Express.Multer.File, folder: string): Promise<{ url: string; publicId: string }> {
     if (!file) throw new BadRequestException('Файл оруулна уу');
+
+    // Fallback: return base64 data URL when Cloudinary is not configured
+    if (!this.isConfigured) {
+      const base64 = file.buffer.toString('base64');
+      const mime = file.mimetype || 'image/png';
+      const dataUrl = `data:${mime};base64,${base64}`;
+      return { url: dataUrl, publicId: 'local-' + Date.now() };
+    }
 
     return new Promise((resolve, reject) => {
       const upload = cloudinary.uploader.upload_stream(
@@ -36,6 +50,7 @@ export class UploadService {
   }
 
   async deleteImage(publicId: string) {
+    if (publicId.startsWith('local-')) return; // Skip local files
     await cloudinary.uploader.destroy(publicId);
   }
 }

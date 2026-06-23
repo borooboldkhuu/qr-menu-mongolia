@@ -17,8 +17,13 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [slug, setSlug] = useState('');
 
+  const [showForm, setShowForm] = useState(false);
+  const [rName, setRName] = useState('');
+  const [rSlug, setRSlug] = useState('');
+  const [rPhone, setRPhone] = useState('');
+  const [creating, setCreating] = useState(false);
+
   useEffect(() => {
-    // Get first restaurant slug or ask to create one
     api.get('/restaurants').then((res) => {
       const restaurants = res.data.data;
       if (restaurants.length > 0) {
@@ -26,6 +31,22 @@ export default function DashboardPage() {
       }
     });
   }, []);
+
+  const handleCreateRestaurant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const res = await api.post('/restaurants', { name: rName, slug: rSlug, phone: rPhone });
+      setSlug(rSlug);
+      setShowForm(false);
+      // Start trial
+      await api.post(`/restaurants/${rSlug}/subscription`);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Үүсгэхэд алдаа гарлаа');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   useEffect(() => {
     if (slug) {
@@ -36,13 +57,33 @@ export default function DashboardPage() {
   if (!slug) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 max-w-md">
           <UtensilsCrossed className="w-16 h-16 text-gray-300 mx-auto" />
           <h2 className="text-xl font-semibold">Ресторан үүсгэх</h2>
           <p className="text-gray-500">Эхлээд ресторанаа бүртгүүлнэ үү</p>
-          <button className="bg-brand-600 text-white px-6 py-2 rounded-lg font-medium">
-            Ресторан үүсгэх
-          </button>
+          {!showForm ? (
+            <button onClick={() => setShowForm(true)} className="bg-brand-600 text-white px-6 py-2 rounded-lg font-medium">
+              Ресторан үүсгэх
+            </button>
+          ) : (
+            <form onSubmit={handleCreateRestaurant} className="bg-white p-6 rounded-xl border text-left space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Рестораны нэр</label>
+                <input value={rName} onChange={(e) => setRName(e.target.value)} className="w-full border rounded-lg px-4 py-2" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Slug (хаяганд харагдах нэр)</label>
+                <input value={rSlug} onChange={(e) => setRSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} className="w-full border rounded-lg px-4 py-2" placeholder="my-restaurant" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Утас (заавал биш)</label>
+                <input value={rPhone} onChange={(e) => setRPhone(e.target.value)} className="w-full border rounded-lg px-4 py-2" />
+              </div>
+              <button type="submit" disabled={creating} className="w-full bg-brand-600 text-white py-2 rounded-lg font-medium">
+                {creating ? 'Үүсгэж байна...' : 'Ресторан үүсгэх'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     );
