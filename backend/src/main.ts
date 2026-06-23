@@ -23,9 +23,7 @@ async function bootstrap() {
   // Wire webhook-д rawBody хэрэгтэй — эхлээд raw buffer хадгална
   app.use(json({
     verify: (req: any, _res, buf) => {
-      if (req.originalUrl?.includes('/payments/wire/webhook')) {
-        req.rawBody = buf;
-      }
+      (req as any).rawBody = buf;
     },
     limit: '10mb',
   }));
