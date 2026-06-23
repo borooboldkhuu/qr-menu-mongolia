@@ -20,6 +20,8 @@ export class PublicService {
         instagramUrl: true,
         theme: true,
         primaryColor: true,
+        subscriptionTier: true,
+        subExpiresAt: true,
       },
     });
 

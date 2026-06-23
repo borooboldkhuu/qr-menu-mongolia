@@ -19,7 +19,18 @@ export class MenuItemsService {
   }
 
   async create(restaurantSlug: string, userId: string, dto: CreateMenuItemDto) {
-    await this.validateRestaurantAccess(restaurantSlug, userId);
+    const restaurant = await this.validateRestaurantAccess(restaurantSlug, userId);
+
+    // Check item limit
+    const limits: Record<string, number> = { STARTER: 50, PRO: 200, ENTERPRISE: 99999 };
+    const limit = limits[restaurant.subscriptionTier] || 50;
+    const count = await this.prisma.menuItem.count({
+      where: { category: { restaurantId: restaurant.id } },
+    });
+    if (count >= limit) {
+      throw new ForbiddenException(`Хоолны тоо хүрсэн (${count}/${limit}). Багцаа шинэчилнэ үү.`);
+    }
+
     return this.prisma.menuItem.create({ data: dto });
   }
 
@@ -53,9 +64,18 @@ export class MenuItemsService {
   }
 
   private async validateRestaurantAccess(slug: string, userId: string) {
-    const restaurant = await this.prisma.restaurant.findUnique({ where: { slug } });
+    const restaurant = await this.prisma.restaurant.findUnique({
+      where: { slug },
+      include: { _count: { select: { categories: true } } },
+    });
     if (!restaurant) throw new NotFoundException('Ресторан олдсонгүй');
     if (restaurant.userId !== userId) throw new ForbiddenException();
+
+    // Check subscription expiry
+    if (restaurant.subExpiresAt && restaurant.subExpiresAt < new Date()) {
+      throw new ForbiddenException('Захиалгын хугацаа дууссан. Багцаа сунгана уу.');
+    }
+
     return restaurant;
   }
 }

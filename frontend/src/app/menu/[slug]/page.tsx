@@ -11,6 +11,7 @@ interface IRestaurant {
   logoUrl?: string; coverUrl?: string;
   address?: string; phone?: string;
   theme?: string; primaryColor?: string;
+  subscriptionTier?: string; subExpiresAt?: string;
 }
 interface IMenuItem {
   id: string; name: string; description?: string;
