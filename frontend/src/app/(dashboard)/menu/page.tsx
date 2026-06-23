@@ -13,6 +13,8 @@ export default function MenuPage() {
   const [filterCat, setFilterCat] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', categoryId: '', price: '', description: '' });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -34,11 +36,27 @@ export default function MenuPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await api.post(`/restaurants/${slug}/items`, { ...form, price: parseFloat(form.price) });
-    setShowForm(false);
-    setForm({ name: '', categoryId: '', price: '', description: '' });
-    loadItems();
-    setLoading(false);
+    try {
+      const res = await api.post(`/restaurants/${slug}/items`, { ...form, price: parseFloat(form.price) });
+      // Upload image if selected
+      if (imageFile) {
+        setUploadingImage(true);
+        const imgForm = new FormData();
+        imgForm.append('file', imageFile);
+        await api.patch(`/restaurants/${slug}/items/${res.data.data.id}/image`, imgForm, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        setUploadingImage(false);
+      }
+      setShowForm(false);
+      setForm({ name: '', categoryId: '', price: '', description: '' });
+      setImageFile(null);
+      loadItems();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Хадгалахад алдаа гарлаа');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -98,8 +116,14 @@ export default function MenuPage() {
               <label className="block text-sm mb-1">Тайлбар</label>
               <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-4 py-2" />
             </div>
+            <div>
+              <label className="block text-sm mb-1">Зураг</label>
+              <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className="w-full text-sm" />
+            </div>
           </div>
-          <button type="submit" disabled={loading} className="bg-brand-600 text-white px-6 py-2 rounded-lg">Хадгалах</button>
+          <button type="submit" disabled={loading || uploadingImage} className="bg-brand-600 text-white px-6 py-2 rounded-lg">
+            {uploadingImage ? 'Зураг оруулж байна...' : loading ? 'Хадгалж байна...' : 'Хадгалах'}
+          </button>
         </form>
       )}
 

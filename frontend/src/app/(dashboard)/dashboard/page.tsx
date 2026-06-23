@@ -21,6 +21,7 @@ export default function DashboardPage() {
   const [rName, setRName] = useState('');
   const [rSlug, setRSlug] = useState('');
   const [rPhone, setRPhone] = useState('');
+  const [rAddress, setRAddress] = useState('');
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function DashboardPage() {
     e.preventDefault();
     setCreating(true);
     try {
-      const res = await api.post('/restaurants', { name: rName, slug: rSlug, phone: rPhone });
+      const res = await api.post('/restaurants', { name: rName, slug: rSlug, phone: rPhone, address: rAddress });
       setSlug(rSlug);
       setShowForm(false);
       // Start trial
@@ -78,6 +79,10 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-sm font-medium mb-1">Утас (заавал биш)</label>
                 <input value={rPhone} onChange={(e) => setRPhone(e.target.value)} className="w-full border rounded-lg px-4 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Хаяг (заавал биш)</label>
+                <input value={rAddress} onChange={(e) => setRAddress(e.target.value)} className="w-full border rounded-lg px-4 py-2" placeholder="Улаанбаатар, ..." />
               </div>
               <button type="submit" disabled={creating} className="w-full bg-brand-600 text-white py-2 rounded-lg font-medium">
                 {creating ? 'Үүсгэж байна...' : 'Ресторан үүсгэх'}

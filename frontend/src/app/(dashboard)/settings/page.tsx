@@ -69,7 +69,19 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="text-xs text-brand-600 cursor-pointer hover:underline">
-                  <input type="file" accept="image/*" className="hidden" />
+                  <input type="file" accept="image/*" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    try {
+                      await api.patch(`/restaurants/${slug}/cover`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                      const res = await api.get('/restaurants');
+                      setRestaurant(res.data.data[0]);
+                    } catch (err: any) {
+                      alert(err?.response?.data?.message || 'Зураг оруулж чадсангүй');
+                    }
+                  }} className="hidden" />
                   Ковер зураг солих
                 </label>
               </div>
