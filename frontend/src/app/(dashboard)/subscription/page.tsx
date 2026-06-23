@@ -27,10 +27,11 @@ export default function SubscriptionPage() {
     setUpgrading(true);
     try {
       const res = await api.post(`/restaurants/${slug}/subscription/pay`, { tier });
-      if (res.data.data?.paymentUrl) {
-        window.open(res.data.data.paymentUrl, '_blank');
+      if (res.data.data?.checkoutUrl) {
+        window.location.href = res.data.data.checkoutUrl;
+      } else {
+        alert('Төлбөрийн холбоос үүсгэхэд алдаа гарлаа');
       }
-      alert('Төлбөрийн цонх нээгдлээ. Төлбөр хийсний дараа багц идэвхжинэ.');
     } catch (err: any) { alert(err?.response?.data?.message || 'Алдаа'); }
     finally { setUpgrading(false); }
   };

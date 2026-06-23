@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { PaymentsController } from './payments.controller';
-import { QpayService } from './qpay.service';
+import { WireService } from './wire.service';
 
 @Module({
   controllers: [PaymentsController],
-  providers: [QpayService],
-  exports: [QpayService],
+  providers: [WireService],
+  exports: [WireService],
 })
 export class PaymentsModule {}

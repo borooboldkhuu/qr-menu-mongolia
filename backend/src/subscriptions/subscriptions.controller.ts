@@ -3,14 +3,14 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { SubscriptionsService } from './subscriptions.service';
 import { UpgradeSubscriptionDto } from './subscriptions.dto';
-import { QpayService } from '../payments/qpay.service';
+import { WireService } from '../payments/wire.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('restaurants/:slug/subscription')
 export class SubscriptionsController {
   constructor(
     private subscriptionsService: SubscriptionsService,
-    private qpayService: QpayService,
+    private wireService: WireService,
   ) {}
 
   @Get()
@@ -39,11 +39,11 @@ export class SubscriptionsController {
   }
 
   @Post('pay')
-  payWithQpay(
+  payWithWire(
     @Param('slug') slug: string,
     @CurrentUser('userId') userId: string,
     @Body() dto: UpgradeSubscriptionDto,
   ) {
-    return this.qpayService.createInvoice(slug, userId, dto.tier);
+    return this.wireService.createCheckout(slug, userId, dto.tier);
   }
 }
