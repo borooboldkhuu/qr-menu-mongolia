@@ -53,7 +53,7 @@ export default function PublicMenuPage() {
     }))
     .filter(cat => cat.menuItems.length > 0);
 
-  const featuredItems = categories.flatMap(c => c.menuItems).filter(i => (i as any).isFeatured || i.imageUrl).slice(0, 3);
+  const featuredItems = categories.flatMap(c => c.menuItems).filter(i => (i as any).isFeatured || i.imageUrl).slice(0, 5);
 
   const getCatIcon = (name: string): string => {
     const map: Record<string, string> = {
@@ -176,16 +176,23 @@ export default function PublicMenuPage() {
             {featuredItems.map((item, i) => (
               <div
                 key={item.id}
-                className="flex-shrink-0 snap-start w-40 h-44 rounded-2xl overflow-hidden relative group cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300"
+                className={`flex-shrink-0 snap-start rounded-2xl overflow-hidden relative group cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300 ${i === 0 ? 'w-[85vw] max-w-[400px] h-52' : 'w-40 h-52'}`}
                 onClick={() => item.imageUrl && setLightbox(item.imageUrl)}
               >
                 {item.imageUrl ? (
                   <>
-                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className={`w-full h-full object-cover transition-transform duration-700 ease-out ${i === 0 ? 'group-hover:scale-110' : 'group-hover:scale-105'}`}
+                      style={i === 0 ? { transform: 'translateY(-5%) scale(1.05)' } : undefined}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   </>
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-green-50" />
+                  <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-green-50 flex items-center justify-center">
+                    <span className="text-4xl">{getCatIcon(item.category?.name || '')}</span>
+                  </div>
                 )}
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="text-white font-bold text-sm drop-shadow-md truncate">{item.name}</p>
