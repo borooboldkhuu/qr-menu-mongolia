@@ -2,36 +2,57 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
-import { CreditCard, Check, QrCode, BarChart3, Infinity } from 'lucide-react';
+import { CreditCard, Check, QrCode, BarChart3, Infinity, AlertCircle } from 'lucide-react';
 
 export default function SubscriptionPage() {
   const [slug, setSlug] = useState('');
   const [subscription, setSubscription] = useState<any>(null);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [upgrading, setUpgrading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     api.get('/restaurants').then(res => {
-      if (res.data.data.length > 0) setSlug(res.data.data[0].slug);
+      if (res.data.data.length > 0) {
+        setSlug(res.data.data[0].slug);
+      }
     });
   }, []);
 
   useEffect(() => {
-    if (slug) {
-      api.get(`/restaurants/${slug}/subscription`).then(res => setSubscription(res.data.data));
-      api.get(`/restaurants/${slug}/subscription/invoices`).then(res => setInvoices(res.data.data));
-    }
+    if (slug) loadSub();
   }, [slug]);
 
+  const loadSub = () => {
+    api.get(`/restaurants/${slug}/subscription`).then(res => setSubscription(res.data.data)).catch(() => {});
+    api.get(`/restaurants/${slug}/subscription/invoices`).then(res => setInvoices(res.data.data || [])).catch(() => {});
+  };
+
   const handleUpgrade = async (tier: string) => {
+    setError('');
     setUpgrading(true);
     try {
       const res = await api.post(`/restaurants/${slug}/subscription/pay`, { tier });
-      if (res.data.data?.checkoutUrl) {
-        window.location.href = res.data.data.checkoutUrl;
+      const url = res.data.data?.checkoutUrl;
+      if (url) {
+        window.location.href = url;
       } else {
-        alert('Төлбөрийн холбоос үүсгэхэд алдаа гарлаа');
+        setError('Төлбөрийн холбоос үүсэхэд алдаа гарлаа. Wire тохиргоог шалгана уу.');
       }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Төлбөр үүсгэхэд алдаа гарлаа';
+      setError(msg);
+    } finally {
+      setUpgrading(false);
+    }
+  };
+
+  const handleDirectActivate = async (tier: string) => {
+    if (!confirm(`${tier} багцыг шууд идэвхжүүлэх үү? (Тест/Админ горим)`)) return;
+    setUpgrading(true);
+    try {
+      await api.patch(`/restaurants/${slug}/subscription`, { tier });
+      loadSub();
     } catch (err: any) { alert(err?.response?.data?.message || 'Алдаа'); }
     finally { setUpgrading(false); }
   };
@@ -59,14 +80,14 @@ export default function SubscriptionPage() {
       <h2 className="text-2xl font-bold mb-2">Захиалга</h2>
 
       {subscription && (
-        <div className="bg-gradient-to-r from-brand-50 to-white p-6 rounded-xl border border-brand-100 mb-8">
-          <div className="flex items-center gap-3 mb-3">
+        <div className="bg-gradient-to-r from-brand-50 to-white p-6 rounded-xl border border-brand-100 mb-6">
+          <div className="flex items-center gap-3">
             <CreditCard className="w-6 h-6 text-brand-600" />
             <div>
               <p className="text-lg font-semibold text-brand-700">
                 {subscription.status === 'TRIAL'
                   ? `7 хоног үнэгүй туршилт (${new Date(subscription.expiresAt).toLocaleDateString('mn-MN')} хүртэл)`
-                  : `${subscription.tier === 'STARTER' ? 'Starter' : subscription.tier === 'PRO' ? 'Pro' : 'Enterprise'} · ${subscription.status === 'ACTIVE' ? 'Идэвхтэй' : subscription.status}`
+                  : `${subscription.tier || '—'} · ${subscription.status === 'ACTIVE' ? '🟢 Идэвхтэй' : subscription.status}`
                 }
               </p>
               <p className="text-sm text-gray-500">
@@ -79,61 +100,62 @@ export default function SubscriptionPage() {
         </div>
       )}
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-4 flex items-center gap-2 text-sm text-red-700">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" /> {error}
+        </div>
+      )}
+
       <h3 className="text-lg font-semibold mb-1">Багц сонгох</h3>
       <p className="text-sm text-gray-400 mb-4">7 хоног үнэгүй туршиж үзэх боломжтой</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {plans.map(plan => (
-          <div key={plan.tier} className={`bg-white p-6 rounded-2xl ${plan.color} relative`}>
-            {plan.popular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg">
-                ⭐ Хамгийн эрэлттэй
-              </div>
-            )}
-            <plan.icon className="w-8 h-8 text-brand-600 mb-3" />
-            <h4 className="font-bold text-lg">{plan.name}</h4>
-            <p className="text-3xl font-extrabold mt-2 mb-1">₮{plan.price.toLocaleString()}</p>
-            <p className="text-sm text-gray-400 mb-4">/ сар</p>
-            <ul className="space-y-2.5 mb-6">
-              {plan.features.map((f, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" /> {f}
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={() => handleUpgrade(plan.tier)}
-              disabled={subscription?.tier === plan.tier || upgrading}
-              className={`w-full py-2.5 rounded-xl font-semibold text-sm transition ${
-                subscription?.tier === plan.tier
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : plan.popular
-                    ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-md'
-                    : 'border-2 border-brand-600 text-brand-600 hover:bg-brand-50'
-              }`}
-            >
-              {subscription?.tier === plan.tier ? 'Одоогийн' : 'Сонгох'}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* QPay төлбөр */}
-      <div className="bg-white rounded-xl border p-6 mb-8">
-        <h3 className="font-semibold mb-3 flex items-center gap-2">💳 Төлбөрийн мэдээлэл</h3>
-        <p className="text-sm text-gray-500 mb-4">
-          QPay апп-аар төлбөр хийх боломжтой. Та QPay merchant болсны дараа API тохиргоог идэвхжүүлнэ.
-        </p>
-        <div className="flex gap-3">
-          <div className="flex-1 bg-gray-50 rounded-lg p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1">QPay холбогдоогүй</p>
-            <p className="text-sm font-semibold text-gray-600">Тохиргоо хийх</p>
-          </div>
-          <div className="flex-1 bg-gray-50 rounded-lg p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1">Гараар төлбөр</p>
-            <p className="text-sm font-semibold text-gray-600">Хүсэлт илгээх</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {plans.map(plan => {
+          const isCurrent = subscription?.tier === plan.tier;
+          return (
+            <div key={plan.tier} className={`bg-white p-6 rounded-2xl ${plan.color} relative`}>
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg">
+                  ⭐ Хамгийн эрэлттэй
+                </div>
+              )}
+              <plan.icon className="w-8 h-8 text-brand-600 mb-3" />
+              <h4 className="font-bold text-lg">{plan.name}</h4>
+              <p className="text-3xl font-extrabold mt-2 mb-1">₮{plan.price.toLocaleString()}</p>
+              <p className="text-sm text-gray-400 mb-4">/ сар</p>
+              <ul className="space-y-2.5 mb-4">
+                {plan.features.map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+              {/* Main payment button */}
+              <button
+                onClick={() => handleUpgrade(plan.tier)}
+                disabled={isCurrent || upgrading}
+                className={`w-full py-2.5 rounded-xl font-semibold text-sm transition mb-2 ${
+                  isCurrent
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : plan.popular
+                      ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-md'
+                      : 'border-2 border-brand-600 text-brand-600 hover:bg-brand-50'
+                }`}
+              >
+                {upgrading ? '...' : isCurrent ? 'Одоогийн багц' : '💳 Wire-р төлөх'}
+              </button>
+              {/* Admin direct activate */}
+              {!isCurrent && (
+                <button
+                  onClick={() => handleDirectActivate(plan.tier)}
+                  className="w-full py-1.5 rounded-xl text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+                >
+                  Админ шууд идэвхжүүлэх
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {invoices.length > 0 && (
@@ -156,7 +178,7 @@ export default function SubscriptionPage() {
                     <td className="px-4 py-3">{inv.tier}</td>
                     <td className="px-4 py-3 font-medium">₮{Number(inv.amount).toLocaleString()}</td>
                     <td className="px-4 py-3">
-                      {inv.status === 'ACTIVE' ? '🟢 Төлөгдсөн' : inv.status === 'TRIAL' ? '🟡 Trial' : '🔴 Дууссан'}
+                      {inv.status === 'ACTIVE' ? '🟢 Төлөгдсөн' : inv.status === 'PAST_DUE' ? '⏳ Хүлээгдэж' : '🟡 Trial'}
                     </td>
                   </tr>
                 ))}

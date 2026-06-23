@@ -27,6 +27,10 @@ export class WireService {
     const restaurant = await this.prisma.restaurant.findUnique({ where: { slug: restaurantSlug } });
     if (!restaurant || restaurant.userId !== userId) throw new BadRequestException('Ресторан олдсонгүй');
 
+    if (!this.KEY_ID || !this.SECRET) {
+      throw new BadRequestException('Wire төлбөрийн тохиргоо хийгдээгүй. Админ шууд идэвхжүүлэх товчийг ашиглана уу.');
+    }
+
     const amount = this.TIER_PRICES[tier];
 
     try {
