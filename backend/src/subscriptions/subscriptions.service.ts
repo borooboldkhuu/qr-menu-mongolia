@@ -14,21 +14,32 @@ export class SubscriptionsService {
 
   async getCurrent(restaurantSlug: string, userId: string) {
     const restaurant = await this.validateRestaurantAccess(restaurantSlug, userId);
-    const subscription = await this.prisma.subscription.findFirst({
-      where: { restaurantId: restaurant.id },
+
+    // Find ACTIVE subscription first, then TRIAL
+    const active = await this.prisma.subscription.findFirst({
+      where: { restaurantId: restaurant.id, status: 'ACTIVE' },
       orderBy: { createdAt: 'desc' },
     });
 
-    if (!subscription) {
-      return {
-        tier: restaurant.subscriptionTier,
-        status: 'TRIAL',
-        amount: 0,
-        expiresAt: restaurant.subExpiresAt,
-      };
-    }
+    if (active) return active;
 
-    return subscription;
+    const trial = await this.prisma.subscription.findFirst({
+      where: { restaurantId: restaurant.id, status: 'TRIAL' },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (trial) return trial;
+
+    // No active/trial — use restaurant as source of truth
+    const now = new Date();
+    const expired = restaurant.subExpiresAt && restaurant.subExpiresAt < now;
+
+    return {
+      tier: restaurant.subscriptionTier,
+      status: expired ? 'EXPIRED' : 'TRIAL',
+      amount: 0,
+      expiresAt: restaurant.subExpiresAt,
+    };
   }
 
   async startTrial(restaurantSlug: string, userId: string) {
