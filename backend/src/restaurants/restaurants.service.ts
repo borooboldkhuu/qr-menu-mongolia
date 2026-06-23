@@ -15,7 +15,7 @@ export class RestaurantsService {
       where: { userId },
       include: {
         _count: {
-          select: { categories: true, menuItems: true },
+          select: { categories: true, qrCodes: true },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -27,7 +27,7 @@ export class RestaurantsService {
       where: { slug },
       include: {
         _count: {
-          select: { categories: true, menuItems: true, qrCodes: true },
+          select: { categories: true, qrCodes: true },
         },
       },
     });

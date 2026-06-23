@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req, Ip, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, Req, Ip, Headers } from '@nestjs/common';
 import { Public } from '../common/decorators/public.decorator';
 import { PublicService } from './public.service';
 import { AnalyticsService } from '../analytics/analytics.service';
