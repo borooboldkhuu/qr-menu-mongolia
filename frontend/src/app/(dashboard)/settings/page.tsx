@@ -7,7 +7,7 @@ import { Camera } from 'lucide-react';
 export default function SettingsPage() {
   const [slug, setSlug] = useState('');
   const [restaurant, setRestaurant] = useState<any>(null);
-  const [form, setForm] = useState({ name: '', address: '', phone: '', facebookUrl: '', instagramUrl: '' });
+  const [form, setForm] = useState({ name: '', address: '', phone: '', facebookUrl: '', instagramUrl: '', theme: 'light', primaryColor: '#059669' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function SettingsPage() {
         const r = res.data.data[0];
         setSlug(r.slug);
         setRestaurant(r);
-        setForm({ name: r.name || '', address: r.address || '', phone: r.phone || '', facebookUrl: r.facebookUrl || '', instagramUrl: r.instagramUrl || '' });
+        setForm({ name: r.name || '', address: r.address || '', phone: r.phone || '', facebookUrl: r.facebookUrl || '', instagramUrl: r.instagramUrl || '', theme: r.theme || 'light', primaryColor: r.primaryColor || '#059669' });
       }
     });
   }, []);
@@ -24,7 +24,7 @@ export default function SettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    await api.patch(`/restaurants/${slug}`, form);
+    await api.patch(`/restaurants/${slug}`, { name: form.name, address: form.address, phone: form.phone, facebookUrl: form.facebookUrl, instagramUrl: form.instagramUrl, theme: form.theme, primaryColor: form.primaryColor });
     setSaving(false);
     alert('Амжилттай хадгалагдлаа! ✅');
   };
@@ -121,6 +121,33 @@ export default function SettingsPage() {
               <label className="block text-sm font-medium mb-1">Slug</label>
               <input value={slug} disabled className="w-full border rounded-lg px-4 py-2 bg-gray-50 text-gray-500" />
               <p className="text-xs text-gray-400 mt-1">Таны нийтийн цэсний хаяг: qrmenu.mn/menu/{slug}</p>
+            </div>
+
+            {/* ─── Theme ─── */}
+            <div className="border-t pt-5">
+              <h3 className="font-semibold mb-4">🎨 Дизайн тохиргоо</h3>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                {[
+                  { t:'light', l:'Цагаан', p:'#f8f9fa' },
+                  { t:'dark', l:'Хар', p:'#0a0a0f' },
+                  { t:'luxury', l:'Алтан', p:'#0c0a09' },
+                  { t:'blue', l:'Цэнхэр', p:'#eff6ff' },
+                  { t:'green', l:'Ногоон', p:'#f0fdf4' },
+                  { t:'brown', l:'Кофе', p:'#faf7f2' },
+                ].map(({t,l,p}) => (
+                  <button key={t} type="button" onClick={() => setForm({...form, theme: t})}
+                    className="p-3 rounded-xl border-2 text-center text-xs font-semibold transition-all"
+                    style={{ background: p, borderColor: form.theme === t ? form.primaryColor || '#059669' : 'transparent', boxShadow: form.theme === t ? `0 0 0 2px ${form.primaryColor || '#059669'}40` : 'none' }}>
+                    <div className="w-6 h-6 rounded-full mx-auto mb-1" style={{ background: form.theme === t && t === 'dark' ? '#fff' : t === 'luxury' ? '#d97706' : t === 'blue' ? '#2563eb' : t === 'green' ? '#16a34a' : t === 'brown' ? '#a16207' : '#059669' }} />
+                    {l}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium">Өргөлт өнгө:</label>
+                <input type="color" value={form.primaryColor} onChange={e => setForm({...form, primaryColor: e.target.value, theme: 'custom'})} className="w-10 h-10 rounded-lg border cursor-pointer" />
+                <span className="text-xs text-gray-400">{form.primaryColor}</span>
+              </div>
             </div>
 
             <button type="submit" disabled={saving} className="bg-brand-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-brand-700 transition">

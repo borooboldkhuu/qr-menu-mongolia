@@ -66,6 +66,8 @@ model Restaurant {
   phone            String?
   facebookUrl      String?          @map("facebook_url")
   instagramUrl     String?          @map("instagram_url")
+  theme            String?          @default("light")
+  primaryColor     String?          @map("primary_color") @default("#059669")
   subscriptionTier SubscriptionTier @default(STARTER) @map("subscription_tier")
   subExpiresAt     DateTime?        @map("sub_expires_at")
   isActive         Boolean          @default(true) @map("is_active")
