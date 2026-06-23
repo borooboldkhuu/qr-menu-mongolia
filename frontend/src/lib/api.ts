@@ -4,7 +4,7 @@ const API_URL = 'https://qr-menu-api-n13y.onrender.com/api/v1';
 
 export const api = axios.create({
   baseURL: API_URL,
-  timeout: 15000,
+  timeout: 60000,
 });
 
 api.interceptors.request.use((config) => {
@@ -43,7 +43,7 @@ api.interceptors.response.use(
 
 export const authApi = axios.create({
   baseURL: API_URL,
-  timeout: 15000,
+  timeout: 60000,
 });
 
 authApi.interceptors.request.use((config) => {
