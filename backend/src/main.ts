@@ -20,15 +20,15 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Wire webhook-д rawBody хэрэгтэй
-  app.use('/api/v1/payments/wire/webhook', json({
+  // Wire webhook-д rawBody хэрэгтэй — эхлээд raw buffer хадгална
+  app.use(json({
     verify: (req: any, _res, buf) => {
-      req.rawBody = buf;
+      if (req.originalUrl?.includes('/payments/wire/webhook')) {
+        req.rawBody = buf;
+      }
     },
+    limit: '10mb',
   }));
-
-  // Body parser
-  app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ extended: true, limit: '10mb' }));
 
   // Compression
