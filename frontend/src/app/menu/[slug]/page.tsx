@@ -98,9 +98,9 @@ export default function PublicMenuPage() {
         <div className="relative -mt-10 px-6 pb-4 text-center">
           <div className="inline-flex items-center justify-center">
             {restaurant.logoUrl ? (
-              <img src={restaurant.logoUrl} alt={restaurant.name} className="w-20 h-20 rounded-2xl object-cover border-[3px] shadow-xl" style={{ borderColor: theme.surface }} />
+              <img src={restaurant.logoUrl} alt={restaurant.name} className="w-12 h-12 rounded-xl object-cover border-[3px] shadow-xl" style={{ borderColor: theme.surface }} />
             ) : (
-              <div className="w-20 h-20 rounded-2xl border-[3px] shadow-xl flex items-center justify-center text-3xl" style={{ background: `linear-gradient(135deg, ${theme.accent}44, ${theme.accent}66)`, borderColor: theme.surface }}>
+              <div className="w-12 h-12 rounded-xl border-[3px] shadow-xl flex items-center justify-center text-xl" style={{ background: `linear-gradient(135deg, ${theme.accent}44, ${theme.accent}66)`, borderColor: theme.surface }}>
                 🍽️
               </div>
             )}
