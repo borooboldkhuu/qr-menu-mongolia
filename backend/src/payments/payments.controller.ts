@@ -1,4 +1,4 @@
-import { Controller, Post, Req, Res, HttpCode } from '@nestjs/common';
+import { Controller, Post, Req, Res, HttpCode, Get } from '@nestjs/common';
 import { Response } from 'express';
 import { WireService } from './wire.service';
 import { Public } from '../common/decorators/public.decorator';
@@ -6,6 +6,12 @@ import { Public } from '../common/decorators/public.decorator';
 @Controller('payments')
 export class PaymentsController {
   constructor(private wireService: WireService) {}
+
+  @Public()
+  @Get('wire/webhook')
+  getWebhook(@Res() res: Response) {
+    return res.status(200).json({ ok: true });
+  }
 
   @Public()
   @Post('wire/webhook')
