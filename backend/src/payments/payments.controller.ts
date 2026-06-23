@@ -1,4 +1,4 @@
-import { Controller, Post, Req, Res } from '@nestjs/common';
+import { Controller, Post, Req, Res, HttpCode } from '@nestjs/common';
 import { Response } from 'express';
 import { WireService } from './wire.service';
 import { Public } from '../common/decorators/public.decorator';
@@ -9,15 +9,22 @@ export class PaymentsController {
 
   @Public()
   @Post('wire/webhook')
-  async wireWebhook(@Req() req: any, @Res() res: Response) {
-    const raw = req.rawBody
-      ? Buffer.isBuffer(req.rawBody)
-        ? req.rawBody.toString('utf-8')
-        : String(req.rawBody)
-      : JSON.stringify(req.body || {});
+  @HttpCode(200)
+  async wireWebhook(@Req() req: any, @Res({ passthrough: false }) res: Response) {
+    let raw = '{}';
+    try {
+      if (Buffer.isBuffer(req.rawBody)) {
+        raw = req.rawBody.toString('utf-8');
+      } else if (typeof req.rawBody === 'string') {
+        raw = req.rawBody;
+      } else if (req.body) {
+        raw = JSON.stringify(req.body);
+      }
+    } catch {}
 
-    const sig = req.headers?.['wirepayment-signature'] || '';
+    const sig = (req.headers?.['wirepayment-signature'] || '') as string;
     const result = this.wireService.handleWebhook(raw, sig);
-    return res.status(200).json(result);
+    res.status(200).json(result);
+    return;
   }
 }
