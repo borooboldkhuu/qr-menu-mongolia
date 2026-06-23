@@ -13,13 +13,19 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Try localStorage first (instant)
+    const cached = localStorage.getItem('restaurantSlug');
+    if (cached) setSlug(cached);
+
     setLoading(true);
     let attempts = 0;
     const tryLoad = () => {
       attempts++;
       api.get('/restaurants').then(res => {
         if (res.data.data.length > 0) {
-          setSlug(res.data.data[0].slug);
+          const s = res.data.data[0].slug;
+          setSlug(s);
+          localStorage.setItem('restaurantSlug', s);
         }
         setLoading(false);
       }).catch(() => {

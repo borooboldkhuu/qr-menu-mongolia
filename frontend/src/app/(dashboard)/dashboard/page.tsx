@@ -25,7 +25,10 @@ export default function DashboardPage() {
     api.get('/restaurants').then(res => {
       const list = res.data.data;
       setRestaurants(list);
-      if (list.length > 0) setSlug(list[0].slug);
+      if (list.length > 0) {
+        setSlug(list[0].slug);
+        localStorage.setItem('restaurantSlug', list[0].slug);
+      }
     });
   };
 

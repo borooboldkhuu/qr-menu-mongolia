@@ -17,6 +17,7 @@ export default function SettingsPage() {
       if (res.data.data.length > 0) {
         const r = res.data.data[0];
         setSlug(r.slug);
+        localStorage.setItem('restaurantSlug', r.slug);
         setRestaurant(r);
         setForm({ name: r.name || '', address: r.address || '', phone: r.phone || '', facebookUrl: r.facebookUrl || '', instagramUrl: r.instagramUrl || '', theme: r.theme || 'light', primaryColor: r.primaryColor || '#059669' });
       }
