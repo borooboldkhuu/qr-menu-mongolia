@@ -138,8 +138,18 @@ export class WireService {
       .update(`${t}.${rawBody}`)
       .digest('hex');
 
-    if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v1))) {
-      this.logger.warn('Wire signature mismatch');
+    if (expected.length !== v1.length) {
+      this.logger.warn('Wire signature length mismatch');
+      return false;
+    }
+
+    try {
+      if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v1))) {
+        this.logger.warn('Wire signature mismatch');
+        return false;
+      }
+    } catch {
+      this.logger.warn('Wire signature comparison failed');
       return false;
     }
 
