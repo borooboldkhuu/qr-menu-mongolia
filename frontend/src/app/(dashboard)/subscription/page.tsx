@@ -13,10 +13,8 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Try localStorage first (instant)
     const cached = localStorage.getItem('restaurantSlug');
     if (cached) setSlug(cached);
-
     setLoading(true);
     let attempts = 0;
     const tryLoad = () => {
@@ -52,63 +50,47 @@ export default function SubscriptionPage() {
     try {
       const res = await api.post(`/restaurants/${slug}/subscription/pay`, { tier });
       const url = res.data.data?.checkoutUrl;
-      if (url) {
-        window.location.href = url;
-      } else {
-        setError('Төлбөрийн холбоос үүсэхэд алдаа гарлаа. Wire тохиргоог шалгана уу.');
-      }
+      if (url) window.location.href = url;
+      else setError('Төлбөрийн холбоос үүсэхэд алдаа гарлаа. Wire тохиргоог шалгана уу.');
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Төлбөр үүсгэхэд алдаа гарлаа';
-      setError(msg);
-    } finally {
-      setUpgrading(false);
-    }
+      setError(err?.response?.data?.message || 'Төлбөр үүсгэхэд алдаа гарлаа');
+    } finally { setUpgrading(false); }
   };
 
   const handleDirectActivate = async (tier: string) => {
     if (!confirm(`${tier} багцыг шууд идэвхжүүлэх үү? (Тест/Админ горим)`)) return;
     setUpgrading(true);
-    try {
-      await api.patch(`/restaurants/${slug}/subscription`, { tier });
-      loadSub();
-    } catch (err: any) { alert(err?.response?.data?.message || 'Алдаа'); }
+    try { await api.patch(`/restaurants/${slug}/subscription`, { tier }); loadSub(); }
+    catch (err: any) { alert(err?.response?.data?.message || 'Алдаа'); }
     finally { setUpgrading(false); }
   };
 
   const plans = [
-    {
-      tier: 'STARTER', name: 'Starter', price: 29000, color: 'border-gray-200',
-      features: ['QR цэс', '50 хүртэл хоол', '10 ангилал', 'Үндсэн аналитик'],
-      icon: QrCode,
-    },
-    {
-      tier: 'PRO', name: 'Pro', price: 49000, color: 'border-brand-500 ring-2 ring-brand-500',
-      features: ['QR цэс', '200 хүртэл хоол', '30 ангилал', 'Дэлгэрэнгүй аналитик', 'Нэмэлт админ'],
-      icon: BarChart3, popular: true,
-    },
-    {
-      tier: 'ENTERPRISE', name: 'Enterprise', price: 79000, color: 'border-gray-200',
-      features: ['QR цэс', 'Хязгааргүй хоол', 'Хязгааргүй ангилал', 'Бүрэн аналитик', 'Custom domain'],
-      icon: Infinity,
-    },
+    { tier: 'STARTER', name: 'Starter', price: 29000, features: ['QR цэс', '50 хүртэл хоол', '10 ангилал', 'Үндсэн аналитик'], icon: QrCode },
+    { tier: 'PRO', name: 'Pro', price: 49000, features: ['QR цэс', '200 хүртэл хоол', '30 ангилал', 'Дэлгэрэнгүй аналитик', 'Нэмэлт админ'], icon: BarChart3, popular: true },
+    { tier: 'ENTERPRISE', name: 'Enterprise', price: 79000, features: ['QR цэс', 'Хязгааргүй хоол', 'Хязгааргүй ангилал', 'Бүрэн аналитик', 'Custom domain'], icon: Infinity },
   ];
+
+  if (loading) return (
+    <div>
+      <h2 className="text-2xl font-bold mb-2">Захиалга</h2>
+      <div className="flex items-center gap-2 text-sm text-gray-400 py-8">
+        <div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-brand-600 animate-spin" />
+        Ачаалж байна...
+      </div>
+    </div>
+  );
+
+  if (!slug) return (
+    <div>
+      <h2 className="text-2xl font-bold mb-2">Захиалга</h2>
+      <p className="text-gray-400 py-4">Ресторан олдсонгүй. Эхлээд Dashboard-оос ресторан үүсгэнэ үү.</p>
+    </div>
+  );
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-2">Захиалга</h2>
-
-      {loading && (
-        <div className="flex items-center gap-2 text-sm text-gray-400 py-8">
-          <div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-brand-600 animate-spin" />
-          Ачаалж байна...
-        </div>
-      )}
-
-      {!loading && !slug && (
-        <p className="text-gray-400 py-4">Ресторан олдсонгүй. Эхлээд ресторан үүсгэнэ үү.</p>
-      )}
-
-      {!loading && slug && <>
 
       {subscription && (
         <div className="bg-gradient-to-r from-brand-50 to-white p-6 rounded-xl border border-brand-100 mb-6">
@@ -118,8 +100,7 @@ export default function SubscriptionPage() {
               <p className="text-lg font-semibold text-brand-700">
                 {subscription.status === 'TRIAL'
                   ? `7 хоног үнэгүй туршилт (${new Date(subscription.expiresAt).toLocaleDateString('mn-MN')} хүртэл)`
-                  : `${subscription.tier || '—'} · ${subscription.status === 'ACTIVE' ? '🟢 Идэвхтэй' : subscription.status}`
-                }
+                  : `${subscription.tier || '—'} · ${subscription.status === 'ACTIVE' ? '🟢 Идэвхтэй' : subscription.status}`}
               </p>
               <p className="text-sm text-gray-500">
                 {subscription.status === 'TRIAL'
@@ -144,7 +125,7 @@ export default function SubscriptionPage() {
         {plans.map(plan => {
           const isCurrent = subscription?.tier === plan.tier;
           return (
-            <div key={plan.tier} className={`bg-white p-6 rounded-2xl ${plan.color} relative`}>
+            <div key={plan.tier} className={`bg-white p-6 rounded-2xl ${plan.popular ? 'border-brand-500 ring-2 ring-brand-500' : 'border-gray-200 border'} relative`}>
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg">
                   ⭐ Хамгийн эрэлттэй
@@ -161,26 +142,15 @@ export default function SubscriptionPage() {
                   </li>
                 ))}
               </ul>
-              {/* Main payment button */}
               <button
                 onClick={() => handleUpgrade(plan.tier)}
                 disabled={isCurrent || upgrading}
-                className={`w-full py-2.5 rounded-xl font-semibold text-sm transition mb-2 ${
-                  isCurrent
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : plan.popular
-                      ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-md'
-                      : 'border-2 border-brand-600 text-brand-600 hover:bg-brand-50'
-                }`}
+                className={`w-full py-2.5 rounded-xl font-semibold text-sm transition mb-2 ${isCurrent ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : plan.popular ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-md' : 'border-2 border-brand-600 text-brand-600 hover:bg-brand-50'}`}
               >
                 {upgrading ? '...' : isCurrent ? 'Одоогийн багц' : '💳 Wire-р төлөх'}
               </button>
-              {/* Admin direct activate */}
               {!isCurrent && (
-                <button
-                  onClick={() => handleDirectActivate(plan.tier)}
-                  className="w-full py-1.5 rounded-xl text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
-                >
+                <button onClick={() => handleDirectActivate(plan.tier)} className="w-full py-1.5 rounded-xl text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition">
                   Админ шууд идэвхжүүлэх
                 </button>
               )}
@@ -190,7 +160,7 @@ export default function SubscriptionPage() {
       </div>
 
       {invoices.length > 0 && (
-        <>
+        <div>
           <h3 className="font-semibold mb-3">Төлбөрийн түүх</h3>
           <div className="bg-white rounded-xl border overflow-hidden">
             <table className="w-full text-sm">
@@ -208,15 +178,13 @@ export default function SubscriptionPage() {
                     <td className="px-4 py-3">{new Date(inv.startedAt).toLocaleDateString('mn-MN')}</td>
                     <td className="px-4 py-3">{inv.tier}</td>
                     <td className="px-4 py-3 font-medium">₮{Number(inv.amount).toLocaleString()}</td>
-                    <td className="px-4 py-3">
-                      {inv.status === 'ACTIVE' ? '🟢 Төлөгдсөн' : inv.status === 'PAST_DUE' ? '⏳ Хүлээгдэж' : '🟡 Trial'}
-                    </td>
+                    <td className="px-4 py-3">{inv.status === 'ACTIVE' ? '🟢 Төлөгдсөн' : inv.status === 'PAST_DUE' ? '⏳ Хүлээгдэж' : '🟡 Trial'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
