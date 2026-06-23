@@ -23,7 +23,11 @@ export default function RegisterPage() {
       await register(email, password, name);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Бүртгүүлэхэд алдаа гарлаа');
+      const msg = err?.response?.data?.message 
+        || err?.message 
+        || err?.code
+        || 'Бүртгүүлэхэд алдаа гарлаа (сервертэй холбогдож чадсангүй)';
+      setError(msg);
     } finally {
       setLoading(false);
     }
