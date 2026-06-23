@@ -9,6 +9,10 @@ export class CreateCategoryDto {
   description?: string;
 
   @IsOptional()
+  @IsString()
+  icon?: string;
+
+  @IsOptional()
   @IsInt()
   sortOrder?: number;
 }
@@ -21,6 +25,10 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  icon?: string;
 
   @IsOptional()
   @IsInt()

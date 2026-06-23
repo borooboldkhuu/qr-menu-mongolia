@@ -19,7 +19,7 @@ interface IMenuItem {
   isFeatured?: boolean;
   category?: { id: string; name: string };
 }
-interface ICategory { id: string; name: string; menuItems: IMenuItem[]; }
+interface ICategory { id: string; name: string; menuItems: IMenuItem[]; icon?: string; }
 
 export default function PublicMenuPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -158,7 +158,7 @@ export default function PublicMenuPage() {
                     : 'bg-white text-gray-400 border border-gray-100 hover:bg-gray-50 hover:text-gray-600'
                 }`}
               >
-                <span className="text-base">{getCatIcon(cat.name)}</span> {cat.name}
+                <span className="text-base">{cat.icon || getCatIcon(cat.name)}</span> {cat.name}
               </button>
             ))}
           </div>
@@ -225,7 +225,7 @@ export default function PublicMenuPage() {
             {/* Category header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <span className="text-xl">{getCatIcon(category.name)}</span>
+                <span className="text-xl">{category.icon || getCatIcon(category.name)}</span>
                 <h2 className="text-lg font-extrabold text-gray-800">{category.name}</h2>
                 <span className="text-xs font-medium text-gray-300 bg-gray-100 px-2 py-0.5 rounded-full">{category.menuItems.length}</span>
               </div>
@@ -249,7 +249,7 @@ export default function PublicMenuPage() {
                     </div>
                   ) : (
                     <div className="w-[140px] h-[140px] rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 flex-shrink-0 flex items-center justify-center text-3xl">
-                      {getCatIcon(item.category?.name || '')}
+                      {category.icon || getCatIcon(item.category?.name || '')}
                     </div>
                   )}
 

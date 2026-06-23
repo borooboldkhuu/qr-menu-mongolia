@@ -11,6 +11,7 @@ export default function CategoriesPage() {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [icon, setIcon] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -30,9 +31,10 @@ export default function CategoriesPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await api.post(`/restaurants/${slug}/categories`, { name, description, sortOrder: categories.length });
+    await api.post(`/restaurants/${slug}/categories`, { name, description, icon, sortOrder: categories.length });
     setName('');
     setDescription('');
+    setIcon('');
     setShowForm(false);
     loadCategories();
     setLoading(false);
@@ -73,6 +75,21 @@ export default function CategoriesPage() {
             placeholder="Тайлбар (заавал биш)"
             rows={2}
           />
+          <div>
+            <label className="block text-sm font-medium mb-1">Эможи (дүрс)</label>
+            <input
+              value={icon}
+              onChange={(e) => setIcon(e.target.value)}
+              className="w-full border rounded-lg px-4 py-2 text-2xl"
+              placeholder="Жишээ: ☕🍕🍰"
+              maxLength={4}
+            />
+            <div className="flex gap-1 mt-2 flex-wrap">
+              {['☕','🍵','🥤','🍽️','🍕','🍔','🥩','🍜','🥗','🍰','🧁','🍦','🍷','🍸','🍺','🥐','🍟','🦐','🔥','⭐'].map(e => (
+                <button key={e} type="button" onClick={() => setIcon(e)} className={`w-8 h-8 text-lg rounded-lg hover:bg-gray-100 ${icon === e ? 'bg-emerald-100 ring-1 ring-emerald-300' : ''}`}>{e}</button>
+              ))}
+            </div>
+          </div>
           <button type="submit" disabled={loading} className="bg-brand-600 text-white px-6 py-2 rounded-lg">
             Хадгалах
           </button>
@@ -84,6 +101,7 @@ export default function CategoriesPage() {
           <div key={cat.id} className="bg-white p-4 rounded-xl border flex items-center justify-between">
             <div className="flex items-center gap-3">
               <GripVertical className="w-4 h-4 text-gray-300 cursor-grab" />
+              {(cat as any).icon && <span className="text-xl">{(cat as any).icon}</span>}
               <div>
                 <p className="font-medium">{cat.name}</p>
                 {cat.description && <p className="text-sm text-gray-500">{cat.description}</p>}

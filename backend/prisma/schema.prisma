@@ -89,6 +89,7 @@ model Category {
   restaurantId String   @map("restaurant_id")
   name         String
   description  String?
+  icon         String?
   sortOrder    Int      @default(0) @map("sort_order")
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at")
