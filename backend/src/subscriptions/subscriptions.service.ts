@@ -35,7 +35,7 @@ export class SubscriptionsService {
     const restaurant = await this.validateRestaurantAccess(restaurantSlug, userId);
 
     const trialEnd = new Date();
-    trialEnd.setDate(trialEnd.getDate() + 14);
+    trialEnd.setDate(trialEnd.getDate() + 7);
 
     await this.prisma.restaurant.update({
       where: { id: restaurant.id },
